@@ -22,9 +22,9 @@ register_plugin!(State);
 fn initialize(params: InitializeParams) -> Result<()> {
     let document_selector: DocumentSelector = vec![DocumentFilter {
         // lsp language id
-        language: Some(String::from("language_id")),
+        language: Some(String::from("astro")),
         // glob pattern
-        pattern: Some(String::from("**/*.{ext1,ext2}")),
+        pattern: Some(String::from("**/*.astro")),
         // like file:
         scheme: None,
     }];
@@ -96,8 +96,11 @@ fn initialize(params: InitializeParams) -> Result<()> {
     };
 
     // Plugin working directory
-    let volt_uri = VoltEnvironment::uri()?;
-    let server_uri = Url::parse(&volt_uri)?.join("[filename]")?;
+    let volt_uri = std::env::var("VOLT_URI")?;
+    let server_path = Url::parse(&volt_uri)
+        .unwrap()
+        .join("astro-language-server")
+        .unwrap();
 
     // if you want to use server from PATH
     // let server_uri = Url::parse(&format!("urn:{filename}"))?;
@@ -105,7 +108,7 @@ fn initialize(params: InitializeParams) -> Result<()> {
     // Available language IDs
     // https://github.com/lapce/lapce/blob/HEAD/lapce-proxy/src/buffer.rs#L173
     PLUGIN_RPC.start_lsp(
-        server_uri,
+        server_path,
         server_args,
         document_selector,
         params.initialization_options,
@@ -128,3 +131,4 @@ impl LapcePlugin for State {
         }
     }
 }
+
