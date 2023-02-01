@@ -7,7 +7,10 @@
 use anyhow::Result;
 use lapce_plugin::{
     psp_types::{
-        lsp_types::{request::Initialize, DocumentFilter, DocumentSelector, InitializeParams, Url, MessageType},
+        lsp_types::{
+            request::Initialize, DocumentFilter, DocumentSelector, InitializeParams, MessageType,
+            Url,
+        },
         Request,
     },
     register_plugin, LapcePlugin, VoltEnvironment, PLUGIN_RPC,
@@ -88,32 +91,47 @@ fn initialize(params: InitializeParams) -> Result<()> {
 
     // see lapce_plugin::Http for available API to download files
 
-    let _ = match VoltEnvironment::operating_system().as_deref() {
-        Ok("windows") => {
-            format!("{}.exe", "[filename]")
-        }
-        _ => "[filename]".to_string(),
-    };
+    // let _ = match VoltEnvironment::operating_system().as_deref() {
+    //     Ok("windows") => {
+    //         format!("{}.exe", "[filename]")
+    //     }
+    //     _ => "[filename]".to_string(),
+    // };
+
+    let server_uri = Url::parse("urn:node")?;
 
     // Plugin working directory
-    let volt_uri = std::env::var("VOLT_URI")?;
-    let server_path = Url::parse(&volt_uri)
+    let volt_uri = VoltEnvironment::uri()?;
+    let server_js = Url::parse(&volt_uri)?
+        .join("astro-language-server.js")?
+        .to_file_path()
         .unwrap()
-        .join("astro-language-server")
+        .into_os_string()
+        .into_string()
         .unwrap();
+    server_args.insert(0, server_js);
 
-    // if you want to use server from PATH
-    // let server_uri = Url::parse(&format!("urn:{filename}"))?;
+    PLUGIN_RPC.stderr(&format!("{}", server_uri));
+    PLUGIN_RPC.stderr(&format!(
+        "{}",
+        Url::parse(&volt_uri)?
+            .join("nodeServer.js")?
+            .to_file_path()
+            .unwrap()
+            .into_os_string()
+            .into_string()
+            .unwrap()
+    ));
+    PLUGIN_RPC.stderr(&format!("{:?}", server_args));
+    PLUGIN_RPC.stderr(&format!("{:?}", params.initialization_options));
 
-    // Available language IDs
-    // https://github.com/lapce/lapce/blob/HEAD/lapce-proxy/src/buffer.rs#L173
     PLUGIN_RPC.start_lsp(
-        server_path,
+        server_uri,
         server_args,
         document_selector,
         params.initialization_options,
     );
-
+    PLUGIN_RPC.stderr("after");
     Ok(())
 }
 
@@ -124,11 +142,13 @@ impl LapcePlugin for State {
             Initialize::METHOD => {
                 let params: InitializeParams = serde_json::from_value(params).unwrap();
                 if let Err(e) = initialize(params) {
-                    PLUGIN_RPC.window_show_message(MessageType::ERROR, format!("plugin returned with error: {e}"))
+                    PLUGIN_RPC.window_show_message(
+                        MessageType::ERROR,
+                        format!("plugin returned with error: {e}"),
+                    )
                 }
             }
             _ => {}
         }
     }
 }
-
