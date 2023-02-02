@@ -41,16 +41,9 @@ export plugin_dir="plugins/robin.lapce-astro"
 mkdir -p ${xdg_data_dir}/lapce-stable/${plugin_dir}/bin
 yes | cp -i bin/lapce-astro.wasm ${xdg_data_dir}/lapce-stable/${plugin_dir}/bin
 yes | cp -i volt.toml ${xdg_data_dir}/lapce-stable/${plugin_dir}/
-yes | cp -i language-server/bin/nodeServer.js ${xdg_data_dir}/lapce-stable/${plugin_dir}/
+yes | cp -R language-server ${xdg_data_dir}/lapce-stable/${plugin_dir}/
 """
 
 [tasks.astro-language-server-setup]
 command = "pnpm"
 args = ["install", "--prefix", "language-server"]
-
-[tasks.astro-language-server]
-dependencies = ["astro-language-server-setup"]
-script = """
-cd language-server
-npx pnpm build
-"""

@@ -103,19 +103,21 @@ fn initialize(params: InitializeParams) -> Result<()> {
     // Plugin working directory
     let volt_uri = VoltEnvironment::uri()?;
     let server_js = Url::parse(&volt_uri)?
-        .join("astro-language-server.js")?
+        .join("language-server/astro-language-server.js")?
         .to_file_path()
         .unwrap()
         .into_os_string()
         .into_string()
         .unwrap();
     server_args.insert(0, server_js);
+    // add --stdio to the end of the args
+    server_args.push("--stdio".to_string());
 
     PLUGIN_RPC.stderr(&format!("{}", server_uri));
     PLUGIN_RPC.stderr(&format!(
         "{}",
         Url::parse(&volt_uri)?
-            .join("nodeServer.js")?
+            .join("astro-language-server.js")?
             .to_file_path()
             .unwrap()
             .into_os_string()
