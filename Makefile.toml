@@ -5,6 +5,7 @@ dependencies = [
   "check",
   "clippy",
   "release",
+  "install"
 ]
 
 [tasks.fmt]
