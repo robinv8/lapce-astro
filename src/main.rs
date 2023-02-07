@@ -86,46 +86,24 @@ fn initialize(params: InitializeParams) -> Result<()> {
         _ => return Ok(()),
     };
 
-    // Download URL
-    // let _ = format!("https://github.com/<name>/<project>/releases/download/<version>/{filename}");
-
-    // see lapce_plugin::Http for available API to download files
-
-    // let _ = match VoltEnvironment::operating_system().as_deref() {
-    //     Ok("windows") => {
-    //         format!("{}.exe", "[filename]")
-    //     }
-    //     _ => "[filename]".to_string(),
-    // };
-
     let server_uri = Url::parse("urn:node")?;
 
     // Plugin working directory
     let volt_uri = VoltEnvironment::uri()?;
     let server_js = Url::parse(&volt_uri)?
-        .join("language-server/astro-language-server.js")?
+        .join("language-server/node_modules/@astrojs/language-server/bin/nodeServer.js")?
         .to_file_path()
         .unwrap()
         .into_os_string()
         .into_string()
         .unwrap();
+
+    // add server.js to the beginning of the args
     server_args.insert(0, server_js);
+
     // add --stdio to the end of the args
     server_args.push("--stdio".to_string());
 
-    PLUGIN_RPC.stderr(&format!("{}", server_uri));
-    PLUGIN_RPC.stderr(&format!(
-        "{}",
-        Url::parse(&volt_uri)?
-            .join("astro-language-server.js")?
-            .to_file_path()
-            .unwrap()
-            .into_os_string()
-            .into_string()
-            .unwrap()
-    ));
-    PLUGIN_RPC.stderr(&format!("{:?}", server_args));
-    PLUGIN_RPC.stderr(&format!("{:?}", params.initialization_options));
 
     PLUGIN_RPC.start_lsp(
         server_uri,
@@ -133,7 +111,6 @@ fn initialize(params: InitializeParams) -> Result<()> {
         document_selector,
         params.initialization_options,
     );
-    PLUGIN_RPC.stderr("after");
     Ok(())
 }
 
