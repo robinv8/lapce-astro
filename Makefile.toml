@@ -35,6 +35,7 @@ command = "cargo"
 args = ["install", "--path", "."]
 
 [tasks.install]
+dependencies = ["astro-language-server-setup"]
 script = """
 export xdg_data_dir="$HOME/.local/share"
 export plugin_dir="plugins/robin.lapce-astro"
